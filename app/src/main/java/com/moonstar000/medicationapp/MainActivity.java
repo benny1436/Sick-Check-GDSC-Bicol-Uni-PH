@@ -5,10 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatTextView;
@@ -43,7 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
     LinearLayout medicationList;
     EditText sicknessInput;
+    TextView drugName, genericName, dose, form, route, frequency, indication, sideEffect, warnings, notes;
     Button submitBtn;
+
+    ProgressBar medication_progress_bar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +58,19 @@ public class MainActivity extends AppCompatActivity {
         submitBtn = findViewById(R.id.submit_btn);
         sicknessInput = findViewById(R.id.sickness_input);
         medicationList = findViewById(R.id.medication_linear_layout);
+
+        drugName = findViewById(R.id.drug_name);
+        genericName = findViewById(R.id.generic_name);
+        dose = findViewById(R.id.dose);
+        form = findViewById(R.id.form);
+        route = findViewById(R.id.route);
+        frequency = findViewById(R.id.frequency);
+        indication = findViewById(R.id.indication);
+        sideEffect = findViewById(R.id.side_effect);
+        warnings = findViewById(R.id.warnings);
+        notes = findViewById(R.id.notes);
+
+        medication_progress_bar = findViewById(R.id.medication_progress_bar);
 
 
         GenerationConfig.Builder configBuilder = new GenerationConfig.Builder();
@@ -77,12 +95,9 @@ public class MainActivity extends AppCompatActivity {
         GenerativeModelFutures model = GenerativeModelFutures.from(gm);
 
 
-
         submitBtn.setOnClickListener(v -> {
 
-            medicationList.addView(new ProgressBar(MainActivity.this) {{
-                setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            }});
+            medication_progress_bar.setVisibility(View.VISIBLE);
 
             String input = sicknessInput.getText().toString();
             Content content = new Content.Builder()
@@ -113,67 +128,82 @@ public class MainActivity extends AppCompatActivity {
                         System.out.println("Generic name: " + medication.genericName);
                         System.out.println("Dose: " + medication.dose.amount + " " + medication.dose.unit);
 
+                        drugName.setText("Drug Name: " + medication.name);
+                        genericName.setText("Generic name: " + medication.genericName);
+                        dose.setText("Dose: " + medication.dose.amount + " " + medication.dose.unit);
+                        form.setText("Form:" + medication.form);
+                        route.setText("Route: " + medication.route);
+                        frequency.setText("Frequency: " + medication.frequency.timesPerDay + " times per " + medication.frequency.period);
+                        indication.setText("Indication: " + medication.indication.condition + " " + medication.indication.severity);
+                        sideEffect.setText("Side Effect: " + medication.sideEffect.name + " " + medication.sideEffect.severity);
+                        if (medication.warnings.size() > 0) {
+                            warnings.setText("Warnings: " + medication.warnings.get(0));
+                        } else {
+                            warnings.setText("Warnings: None");
+                        }
+                        notes.setText("Notes: " + medication.notes);
 
-                        medicationList.removeAllViews();
+                        medication_progress_bar.setVisibility(View.GONE);
 
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Drug Name: " + medication.name);
-                            setTypeface(null, Typeface.BOLD);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Generic name: " + medication.genericName);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Dose: " + medication.dose.amount + " " + medication.dose.unit);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Form:" + medication.form);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Route: " + medication.route);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
 
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Indication: " + medication.indication.condition + " " + medication.indication.severity);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Side Effect: " + medication.sideEffect.name + " " + medication.sideEffect.severity);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-
-                            if(medication.warnings.size() > 0){
-                                setText("Warnings: " + medication.warnings.get(0));
-                            }
-                            else{
-                                setText("Warnings: None");
-                            }
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Notes: " + medication.notes);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Frequency: " + medication.frequency.timesPerDay + " times per " + medication.frequency.period);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Drug Name: " + medication.name);
+//                            setTypeface(null, Typeface.BOLD);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Generic name: " + medication.genericName);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Dose: " + medication.dose.amount + " " + medication.dose.unit);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Form:" + medication.form);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Route: " + medication.route);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Indication: " + medication.indication.condition + " " + medication.indication.severity);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Side Effect: " + medication.sideEffect.name + " " + medication.sideEffect.severity);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//
+//                            if(medication.warnings.size() > 0){
+//                                setText("Warnings: " + medication.warnings.get(0));
+//                            }
+//                            else{
+//                                setText("Warnings: None");
+//                            }
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Notes: " + medication.notes);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
+//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
+//                            setText("Frequency: " + medication.frequency.timesPerDay + " times per " + medication.frequency.period);
+//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
+//                        }});
 
                     } catch (JsonParseException e) {
                         Toast.makeText(MainActivity.this, "Invalid JSON format", Toast.LENGTH_SHORT).show();
@@ -190,8 +220,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         });
-
-
 
 
     }
