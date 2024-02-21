@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatTextView;
@@ -51,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
         submitBtn = findViewById(R.id.submit_btn);
         sicknessInput = findViewById(R.id.sickness_input);
+        medicationList = findViewById(R.id.medication_linear_layout);
+
 
         GenerationConfig.Builder configBuilder = new GenerationConfig.Builder();
         configBuilder.temperature = 0.9f;
@@ -77,11 +80,13 @@ public class MainActivity extends AppCompatActivity {
 
         submitBtn.setOnClickListener(v -> {
 
+            medicationList.addView(new ProgressBar(MainActivity.this) {{
+                setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            }});
+
             String input = sicknessInput.getText().toString();
             Content content = new Content.Builder()
-                    .addText("Find possible medication for an illness provided in the input, output using a JSON Template:{  \"name\": \"Medication Name\",  \"genericName\": \"Generic Name\",  \"drugClass\": \"Drug Class\",  \"dose\": {    \"amount\": 10,    \"unit\": \"mg\"  },  \"form\": \"Tablet\",  \"route\": \"Oral\",  \"frequency\": {    \"timesPerDay\": 2,    \"period\": \"Day\"  },  \"indication\": {    \"condition\": \"Condition Treated\",    \"severity\": \"Moderate\"  },  \"contraindications\": [\"Allergy to X\"],  \"interactions\": [\"Drug Y\"],  \"sideEffects\": [    {      \"name\": \"Headache\",      \"severity\": \"Mild\"    },    {      \"name\": \"Nausea\",      \"severity\": \"Moderate\"    }  ],  \"warnings\": [\"Do not take with alcohol\"],  \"notes\": \"Take after food\"}")
-                    .addText("input: Soar Throat")
-                    .addText("output: {\n  \"name\": \"Ibuprofen\",\n  \"genericName\": \"Ibuprofen\",\n  \"drugClass\": \"Nonsteroidal anti-inflammatory drug (NSAID)\",\n  \"dose\": {\n    \"amount\": 200,\n    \"unit\": \"mg\"\n  },\n  \"form\": \"Tablet\",\n  \"route\": \"Oral\",\n  \"frequency\": {\n    \"timesPerDay\": 3,\n    \"period\": \"Day\"\n  },\n  \"indication\": {\n    \"condition\": \"Soar Throat\",\n    \"severity\": \"Moderate\"\n  },\n  \"contraindications\": [],\n  \"interactions\": [],\n  \"sideEffects\": [\n    {\n      \"name\": \"Headache\",\n      \"severity\": \"Mild\"\n    },\n    {\n      \"name\": \"Nausea\",\n      \"severity\": \"Mild\"\n    }\n  ],\n  \"warnings\": [],\n  \"notes\": \"Take after food\"\n}")
+                    .addText("Find possible medication for an illness provided in the input, output using a JSON Template:{  \"name\": \"Medication Name\",  \"genericName\": \"Generic Name\",  \"drugClass\": \"Drug Class\",  \"dose\": {    \"amount\": 10,    \"unit\": \"mg\"  },  \"form\": \"Tablet\",  \"route\": \"Oral\",  \"frequency\": {    \"timesPerDay\": 2,    \"period\": \"Day\"  },  \"indication\": {    \"condition\": \"Condition Treated\",    \"severity\": \"Moderate\"  },  \"sideEffect\": {    \"name\": \"Nausea\",    \"severity\": \"Moderate\"  },  \"warnings\": [    \"Do not take with alcohol\"  ],  \"notes\": \"Take after food\"}")
                     .addText("input: " + input)
                     .addText("output: ")
                     .build();
@@ -108,18 +113,9 @@ public class MainActivity extends AppCompatActivity {
                         System.out.println("Generic name: " + medication.genericName);
                         System.out.println("Dose: " + medication.dose.amount + " " + medication.dose.unit);
 
-                        medicationList = findViewById(R.id.medication_linear_layout);
 
                         medicationList.removeAllViews();
 
-//                    medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                        setText(resultText);
-//                        setTypeface(null, Typeface.BOLD);
-//                        setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                        setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                    }});
-
-                        // Add a new textview to the linear layout
                         medicationList.addView(new AppCompatTextView(MainActivity.this) {{
                             setText("Drug Name: " + medication.name);
                             setTypeface(null, Typeface.BOLD);
@@ -142,43 +138,39 @@ public class MainActivity extends AppCompatActivity {
                             setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
                         }});
                         medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Route:" + medication.route);
+                            setText("Route: " + medication.route);
                             setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                             setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
                         }});
 
                         medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Indication:" + medication.indication.condition + " " + medication.indication.severity);
+                            setText("Indication: " + medication.indication.condition + " " + medication.indication.severity);
                             setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                             setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
                         }});
                         medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Contraindications:" + Arrays.toString(medication.contraindications.toArray()));
+                            setText("Side Effect: " + medication.sideEffect.name + " " + medication.sideEffect.severity);
                             setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                             setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
                         }});
                         medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Interactions:" + Arrays.toString(medication.interactions.toArray()));
+
+                            if(medication.warnings.size() > 0){
+                                setText("Warnings: " + medication.warnings.get(0));
+                            }
+                            else{
+                                setText("Warnings: None");
+                            }
                             setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                             setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
                         }});
                         medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Side Effects:" + medication.sideEffects.get(0).name + " " + medication.sideEffects.get(0).severity);
+                            setText("Notes: " + medication.notes);
                             setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                             setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
                         }});
                         medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Warnings:" + medication.warnings.get(0));
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Notes:" + medication.notes);
-                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-                        }});
-                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-                            setText("Frequency:" + medication.frequency.timesPerDay + " times per " + medication.frequency.period);
+                            setText("Frequency: " + medication.frequency.timesPerDay + " times per " + medication.frequency.period);
                             setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                             setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
                         }});
@@ -227,9 +219,7 @@ public class MainActivity extends AppCompatActivity {
         private String route;
         private Frequency frequency;
         private Indication indication;
-        private List<String> contraindications;
-        private List<String> interactions;
-        private List<SideEffect> sideEffects;
+        private SideEffect sideEffect;
         private List<String> warnings;
         private String notes;
 
