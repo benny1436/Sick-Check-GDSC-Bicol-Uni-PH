@@ -8,9 +8,9 @@
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/medical_foreground"
+        android:layout_width="145dp"
+        android:layout_height="149dp"
+        android:background="@drawable/logo"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,25 +31,29 @@
             android:id="@+id/sickness_input"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:backgroundTint="#E91E63"
+            android:backgroundTint="#00adef"
             android:ems="10"
             android:hint="Input symptom(s)"
             android:inputType="text|textLongMessage" />
 
         <Button
             android:id="@+id/submit_btn"
-            android:layout_width="wrap_content"
+            android:layout_width="113dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:backgroundTint="#E91E63"
-            android:text="Submit" />
+            android:backgroundTint="#ed0e64"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:text="Submit"
+            app:cornerRadius="24dp" />
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
         android:layout_width="348dp"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="#EC407A"
-        app:cardCornerRadius="20dp"
+        android:layout_marginTop="52dp"
+        app:cardBackgroundColor="#07749E"
+        app:cardCornerRadius="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -67,73 +71,114 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp" >
+                android:padding="16dp">
 
                 <TextView
                     android:id="@+id/possible_diagnosis"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Possible Diagnosis:" />
+                    android:padding="2dp"
+                    android:text="Possible Diagnosis:"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:padding="0dp"
+                    android:text="Possible Remedy:"
+                    android:textColor="@color/white" />
 
                 <TextView
                     android:id="@+id/drug_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Drug Name: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Drug Name: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/generic_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Generic Name: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Generic Name: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/dose"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Dose: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Dose: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/form"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Form: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Form: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/route"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Route: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Route: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/indication"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Indication: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Indication: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/side_effect"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Side Effect: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Side Effect: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/warnings"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Warnings: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Warnings: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/notes"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Notes: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Notes: "
+                    android:textColor="#F8F8F8" />
 
                 <TextView
                     android:id="@+id/frequency"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Frequency: " />
+                    android:padding="2dp"
+                    android:paddingStart="16dp"
+                    android:text="Frequency: "
+                    android:textColor="#F8F8F8" />
 
                 <ProgressBar
                     android:id="@+id/medication_progress_bar"
