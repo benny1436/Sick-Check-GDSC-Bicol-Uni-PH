@@ -14,7 +14,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.privacysandbox.tools.core.model.Method;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.ai.client.generativeai.GenerativeModel;
 import com.google.ai.client.generativeai.java.GenerativeModelFutures;
 import com.google.ai.client.generativeai.type.BlockThreshold;
@@ -27,6 +34,16 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,18 +54,23 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 
 
-import kotlin.coroutines.Continuation;
-import kotlin.coroutines.CoroutineContext;
+
 
 
 public class MainActivity extends AppCompatActivity {
 
     LinearLayout medicationList;
     EditText sicknessInput;
-    TextView drugName, genericName, dose, form, route, frequency, indication, sideEffect, warnings, notes;
+    TextView possibleDiagnosis, drugName, genericName, dose, form, route, frequency, indication, sideEffect, warnings, notes;
     Button submitBtn;
 
     ProgressBar medication_progress_bar;
+
+    private MyTensorFlowModel tfLiteModel;
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         sicknessInput = findViewById(R.id.sickness_input);
         medicationList = findViewById(R.id.medication_linear_layout);
 
+        possibleDiagnosis = findViewById(R.id.possible_diagnosis);
         drugName = findViewById(R.id.drug_name);
         genericName = findViewById(R.id.generic_name);
         dose = findViewById(R.id.dose);
@@ -71,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
         notes = findViewById(R.id.notes);
 
         medication_progress_bar = findViewById(R.id.medication_progress_bar);
+
+        // http request sample code
+
 
 
         GenerationConfig.Builder configBuilder = new GenerationConfig.Builder();
@@ -97,132 +123,107 @@ public class MainActivity extends AppCompatActivity {
 
         submitBtn.setOnClickListener(v -> {
 
-            medication_progress_bar.setVisibility(View.VISIBLE);
+            final String[] illness = {""};
 
-            String input = sicknessInput.getText().toString();
-            Content content = new Content.Builder()
-                    .addText("Find possible medication for an illness provided in the input, output using a JSON Template:{  \"name\": \"Medication Name\",  \"genericName\": \"Generic Name\",  \"drugClass\": \"Drug Class\",  \"dose\": {    \"amount\": 10,    \"unit\": \"mg\"  },  \"form\": \"Tablet\",  \"route\": \"Oral\",  \"frequency\": {    \"timesPerDay\": 2,    \"period\": \"Day\"  },  \"indication\": {    \"condition\": \"Condition Treated\",    \"severity\": \"Moderate\"  },  \"sideEffect\": {    \"name\": \"Nausea\",    \"severity\": \"Moderate\"  },  \"warnings\": [    \"Do not take with alcohol\"  ],  \"notes\": \"Take after food\"}")
-                    .addText("input: " + input)
-                    .addText("output: ")
-                    .build();
+            String urlString = "http://46.250.253.229:5000/request?extra=" + sicknessInput.getText().toString();;
+
+            // Instantiate the RequestQueue.
+            RequestQueue queue = Volley.newRequestQueue(this);
+            String url = "https://www.google.com";
+
+// Request a string response from the provided URL.
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, urlString,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response2) {
+                            // Display the first 500 characters of the response string.
+                            System.out.println("Response is: " + response2);
+                            illness[0] = response2;
+                            Toast.makeText(MainActivity.this, "Response is: " + response2, Toast.LENGTH_LONG).show();
+                            medication_progress_bar.setVisibility(View.VISIBLE);
+
+                            String input = illness[0];
+                            Content content = new Content.Builder()
+                                    .addText("Find possible medication for an illness provided in the input, output using a JSON Template:{  \"name\": \"Medication Name\",  \"genericName\": \"Generic Name\",  \"drugClass\": \"Drug Class\",  \"dose\": {    \"amount\": 10,    \"unit\": \"mg\"  },  \"form\": \"Tablet\",  \"route\": \"Oral\",  \"frequency\": {    \"timesPerDay\": 2,    \"period\": \"Day\"  },  \"indication\": {    \"condition\": \"Condition Treated\",    \"severity\": \"Moderate\"  },  \"sideEffect\": {    \"name\": \"Nausea\",    \"severity\": \"Moderate\"  },  \"warnings\": [    \"Do not take with alcohol\"  ],  \"notes\": \"Take after food\"}")
+                                    .addText("input: " + input)
+                                    .addText("output: ")
+                                    .build();
+                            Executor executor = new Executor() {
+                                @Override
+                                public void execute(@NonNull Runnable command) {
+                                    command.run();
+                                }
+                            };
+                            ListenableFuture<GenerateContentResponse> response = model.generateContent(content);
+                            Futures.addCallback(response, new FutureCallback<GenerateContentResponse>() {
+                                @Override
+                                public void onSuccess(GenerateContentResponse result) {
+                                    String resultText = result.getText();
+                                    System.out.println(resultText);
+
+                                    try {
+                                        Medication medication = MedicationParser.parseMedication(resultText);
+
+                                        // Access data using getters:
+                                        System.out.println("Name: " + medication.name);
+                                        System.out.println("Generic name: " + medication.genericName);
+                                        System.out.println("Dose: " + medication.dose.amount + " " + medication.dose.unit);
+
+                                        possibleDiagnosis.setText("Possible Diagnosis: "+ illness[0]);
+                                        drugName.setText("Drug Name: " + medication.name);
+                                        genericName.setText("Generic name: " + medication.genericName);
+                                        dose.setText("Dose: " + medication.dose.amount + " " + medication.dose.unit);
+                                        form.setText("Form:" + medication.form);
+                                        route.setText("Route: " + medication.route);
+                                        frequency.setText("Frequency: " + medication.frequency.timesPerDay + " times per " + medication.frequency.period);
+                                        indication.setText("Indication: " + medication.indication.condition + " " + medication.indication.severity);
+                                        sideEffect.setText("Side Effect: " + medication.sideEffect.name + " " + medication.sideEffect.severity);
+                                        if (medication.warnings.size() > 0) {
+                                            warnings.setText("Warnings: " + medication.warnings.get(0));
+                                        } else {
+                                            warnings.setText("Warnings: None");
+                                        }
+                                        notes.setText("Notes: " + medication.notes);
+
+                                        medication_progress_bar.setVisibility(View.GONE);
 
 
-            Executor executor = new Executor() {
-                @Override
-                public void execute(@NonNull Runnable command) {
-                    command.run();
-                }
-            };
-            ListenableFuture<GenerateContentResponse> response = model.generateContent(content);
-            Futures.addCallback(response, new FutureCallback<GenerateContentResponse>() {
-                @Override
-                public void onSuccess(GenerateContentResponse result) {
-                    String resultText = result.getText();
-                    System.out.println(resultText);
+                                    } catch (JsonParseException e) {
+                                        Toast.makeText(MainActivity.this, "Invalid JSON format", Toast.LENGTH_SHORT).show();
+                                        e.printStackTrace();
+                                    }
 
-                    try {
-                        Medication medication = MedicationParser.parseMedication(resultText);
+                                }
 
-                        // Access data using getters:
-                        System.out.println("Name: " + medication.name);
-                        System.out.println("Generic name: " + medication.genericName);
-                        System.out.println("Dose: " + medication.dose.amount + " " + medication.dose.unit);
-
-                        drugName.setText("Drug Name: " + medication.name);
-                        genericName.setText("Generic name: " + medication.genericName);
-                        dose.setText("Dose: " + medication.dose.amount + " " + medication.dose.unit);
-                        form.setText("Form:" + medication.form);
-                        route.setText("Route: " + medication.route);
-                        frequency.setText("Frequency: " + medication.frequency.timesPerDay + " times per " + medication.frequency.period);
-                        indication.setText("Indication: " + medication.indication.condition + " " + medication.indication.severity);
-                        sideEffect.setText("Side Effect: " + medication.sideEffect.name + " " + medication.sideEffect.severity);
-                        if (medication.warnings.size() > 0) {
-                            warnings.setText("Warnings: " + medication.warnings.get(0));
-                        } else {
-                            warnings.setText("Warnings: None");
+                                @Override
+                                public void onFailure(Throwable t) {
+                                    t.printStackTrace();
+                                }
+                            }, executor);
                         }
-                        notes.setText("Notes: " + medication.notes);
-
-                        medication_progress_bar.setVisibility(View.GONE);
-
-
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Drug Name: " + medication.name);
-//                            setTypeface(null, Typeface.BOLD);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Generic name: " + medication.genericName);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Dose: " + medication.dose.amount + " " + medication.dose.unit);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Form:" + medication.form);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Route: " + medication.route);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Indication: " + medication.indication.condition + " " + medication.indication.severity);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Side Effect: " + medication.sideEffect.name + " " + medication.sideEffect.severity);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//
-//                            if(medication.warnings.size() > 0){
-//                                setText("Warnings: " + medication.warnings.get(0));
-//                            }
-//                            else{
-//                                setText("Warnings: None");
-//                            }
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Notes: " + medication.notes);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-//                        medicationList.addView(new AppCompatTextView(MainActivity.this) {{
-//                            setText("Frequency: " + medication.frequency.timesPerDay + " times per " + medication.frequency.period);
-//                            setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//                            setTextAlignment(TEXT_ALIGNMENT_VIEW_START);
-//                        }});
-
-                    } catch (JsonParseException e) {
-                        Toast.makeText(MainActivity.this, "Invalid JSON format", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
-
-                }
-
+                    }, new Response.ErrorListener() {
                 @Override
-                public void onFailure(Throwable t) {
-                    t.printStackTrace();
+                public void onErrorResponse(VolleyError error) {
+                    System.out.println("That didn't work!");
+                    Toast.makeText(MainActivity.this, "That didn't work!", Toast.LENGTH_SHORT).show();
                 }
-            }, executor);
+            });
+
+// Add the request to the RequestQueue.
+            queue.add(stringRequest);
+
+
+
+
+
 
 
         });
 
 
     }
+
+
 
 
     public static class MedicationParser {

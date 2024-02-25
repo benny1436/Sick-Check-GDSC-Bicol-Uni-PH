@@ -33,7 +33,7 @@
             android:layout_height="match_parent"
             android:backgroundTint="#E91E63"
             android:ems="10"
-            android:hint="Input sickness"
+            android:hint="Input symptom(s)"
             android:inputType="text|textLongMessage" />
 
         <Button
@@ -68,6 +68,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp" >
+
+                <TextView
+                    android:id="@+id/possible_diagnosis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Possible Diagnosis:" />
 
                 <TextView
                     android:id="@+id/drug_name"
