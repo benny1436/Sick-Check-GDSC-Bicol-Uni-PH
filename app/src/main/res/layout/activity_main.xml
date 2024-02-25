@@ -79,16 +79,19 @@
                     android:layout_height="wrap_content"
                     android:padding="2dp"
                     android:text="Possible Diagnosis:"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="8dp"
+                    android:fontFamily="sans-serif"
                     android:padding="0dp"
                     android:text="Possible Remedy:"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@+id/drug_name"
